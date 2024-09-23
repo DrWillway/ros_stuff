@@ -1,25 +1,59 @@
 # ros_stuffs
 
-This repository contains a collection of basic ROS (Robot Operating System) examples designed for educational purposes. These examples include simple publishers, subscribers, and a basic reactive navigation controller. More examples may be added over time.
+This repository contains a collection of basic ROS (Robot Operating System) examples designed for educational purposes. These examples include simple publishers, subscribers, services, actions.
 
-## Repository Structure
+### Create python package
 
-- **basic_nodes**
-  - `simple_publisher.py`: A basic ROS node that publishes messages to a topic.
-  - `simple_subscriber.py`: A ROS node that subscribes to a topic and logs received messages.
-  - `simple_subscriber_publisher.py`: A node that subscribes to one topic and publishes to another.
-  - `simple_subscribers.py`: Example of multiple subscribers in a single node.
+```
+cd ros2_ws/src && ros2 pkg create my_python_pkg --build-type ament_python 
 
-- **reactive_nav.cpp**: 
-  A basic reactive controller using laser scan data to avoid obstacles and navigate autonomously.
+cd ~/ros2_ws/src/my_python_pkg/my_python_pkg/
 
-- **ros_service**
-  - `srv/SimpleService.srv`: A custom service definition.
-  - `src/callService.py`: A Python script to call the custom service.
-  - `src/simpleService.py`: A service provider node.
+touch my_python_node.py
+```
 
-- **turtle_controller**: 
-  Includes files related to controlling a turtle in the simulated ROS turtle environment.
+Now that we have a Python file, we need to add an entry point in the setup.py file.
 
-- **static_tf.launch**: 
-  A launch file for setting up static transforms between coordinate frames.
+```
+entry_points={
+    'console_scripts': [
+        'any_name = my_python_pkg.my_python_node:main'
+    ],
+},
+```
+
+### Create interfaces (msg/srv) package
+
+```
+ros2 pkg create --build-type ament_cmake my_interfaces
+
+cd ~/ros2_ws/src/my_interfaces && mkdir msg srv
+
+cd srv && touch Test.srv
+```
+
+Create service definition (input and return) in Test.srv
+```
+string data
+---
+bool success
+```
+
+Add dependencies to CMakeLists.txt:
+```
+find_package(std_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/Test.srv"
+  DEPENDENCIES std_msgs # Add packages that above messages depend on
+)
+```
+
+Add dependencies to package.xml:
+```
+<depend>std_msgs</depend>
+<buildtool_depend>rosidl_default_generators</buildtool_depend>
+<exec_depend>rosidl_default_runtime</exec_depend>
+<member_of_group>rosidl_interface_packages</member_of_group>
+```
